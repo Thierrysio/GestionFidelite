@@ -30,12 +30,12 @@ class ApiController extends AbstractController
     public function GetFindUser(Request $request, UserRepository $userRepository, UserPasswordHasherInterface $passwordHasher)
     {
         $postdata = json_decode($request->getContent());
-        if (!isset($postdata->Email) || !isset($postdata->Password)) {
+        if (!isset($postdata->email) || !isset($postdata->password)) {
             return Utils::ErrorMissingArgumentsDebug($request->getContent());
         }
 
-        $email = $postdata->Email;
-        $plainPassword = $postdata->Password;
+        $email = $postdata->email;
+        $plainPassword = $postdata->password;
         $user = $userRepository->findOneByEmail($email); // Assurez-vous que cette méthode existe dans votre UserRepository
 
         if (!$user || !$passwordHasher->isPasswordValid($user, $plainPassword)) {
