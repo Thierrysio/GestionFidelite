@@ -12,6 +12,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\Common\Collections\Collection;
 
+use App\Entity\User;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface; // Pour Symfony 5.3 et ultérieur
+
+
 class ApiController extends AbstractController
 {
     #[Route('/api', name: 'app_api')]
@@ -77,6 +81,42 @@ class ApiController extends AbstractController
             return $utils->GetJsonResponse($request, $produit, $ignoredFields);
         } catch (\Exception $e) {
             return $utils->ErrorCustom('Erreur: ' . $e->getMessage());
+        }
+    }
+
+    #[Route('/api/mobile/setInscription', name: 'api_setInscription', methods: ['POST'])]
+    public function setInscription(Request $request, UserRepository $userRepository, EntityManagerInterface $entityManager, UserPasswordHasherInterface $userPasswordHasher, Utils $utils): Response
+    {
+        try {
+            $postdata = json_decode($request->getContent(), true);
+            if ($postdata === null) {
+                throw new \Exception('Invalid JSON.');
+            }
+
+            $user = new User();
+            $user->setEmail($postdata['email'] ?? null);
+            $user->setNom($postdata['nom'] ?? null);
+            $user->setPrenom($postdata['prenom'] ?? null);
+            // Hashage du mot de passe
+            $passwordHash = $userPasswordHasher->hashPassword(
+                $user,
+                $postdata['password'] // Assurez-vous que le champ s'appelle 'password' dans le JSON reçu
+            );
+            $user->setPassword($passwordHash);
+            $user->setTelephone($postdata['telephone'] ?? null);
+            $user->setDateNaissance(new \DateTime($postdata['dateNaissance'] ?? 'now'));
+            $user->setStockPointsFidelite($postdata['StockPointsFidelite'] ?? 0);
+            $user->setRoles(['ROLE_USER']);
+
+            $entityManager->persist($user);
+            $entityManager->flush();
+
+            // Spécifiez ici les champs à ignorer si nécessaire
+            $ignoredFields = ['userIdentifier','password', 'roles','lesCommandes','lesCommander','lesUtiliser','lesProduits']; // Exemple: ignorez les champs sensibles comme le mot de passe et les rôles
+
+            return $utils->GetJsonResponse($request, $user, $ignoredFields);
+        } catch (\Exception $e) {
+            return $utils->ErrorCustom('Erreur lors de la création de l\'utilisateur: ' . $e->getMessage());
         }
     }
 }
