@@ -4,6 +4,9 @@ namespace App\Controller;
 
 use App\Entity\Blason;
 use App\Entity\Produit;
+use App\Entity\User;
+use App\Entity\Categorie;
+
 use App\Repository\BlasonRepository;
 use App\Repository\CommandeRepository;
 use App\Repository\CommanderRepository;
@@ -12,6 +15,7 @@ use App\Repository\ProduitRepository;
 use App\Repository\RecompenseRepository;
 use App\Repository\UserRepository;
 use App\Repository\UtiliserRepository;
+use App\Repository\CategorieRepository;
 
 
 use App\Utils\Utils;
@@ -22,7 +26,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\Common\Collections\Collection;
 
-use App\Entity\User;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface; // Pour Symfony 5.3 et ultérieur
 
 
@@ -178,7 +181,7 @@ class ApiController extends AbstractController
 
     }
     #[Route('/api/mobile/creerProduit', name: 'api_CreerProduit', methods: ['POST'])]
-    public function CreerProduit(Request $request, ProduitRepository $produitRepository, UserRepository $userRepository, EntityManagerInterface $entityManager, Utils $utils): Response
+    public function CreerProduit(Request $request, ProduitRepository $produitRepository, UserRepository $userRepository,CategorieRepository $categorieRepository , EntityManagerInterface $entityManager, Utils $utils): Response
     {
         try {
             $postdata = json_decode($request->getContent(), true);
@@ -186,7 +189,15 @@ class ApiController extends AbstractController
                 throw new \Exception('Invalid JSON.');
             }
 
-            // Récupération de l'utilisateur à partir de l'ID fourni
+            // Récupération de la categorie à partir de l'ID fourni
+            if (!isset($postdata['categorieId'])) {
+                throw new \Exception('Categorie ID is missing.');
+            }
+            $categorie = $categorieRepository->find($postdata['categorieId']);
+            if (!$categorie) {
+                throw new \Exception('User not found.');
+            }
+            // Récupération du User à partir de l'ID fourni
             if (!isset($postdata['userId'])) {
                 throw new \Exception('User ID is missing.');
             }
@@ -208,6 +219,8 @@ class ApiController extends AbstractController
 
             // Association de l'utilisateur au produit
             $produit->setLeUser($user);
+             // Association de la categorie au produit
+             $produit->setLaCategorie($categorie);
 
             $entityManager->persist($produit);
             $entityManager->flush();
@@ -218,6 +231,33 @@ class ApiController extends AbstractController
             return $utils->GetJsonResponse($request, $produit, $ignoredFields);
         } catch (\Exception $e) {
             return $utils->ErrorCustom('Erreur lors de la création du produit: ' . $e->getMessage());
+        }
+    }
+
+    #[Route('/api/mobile/creerCategorie', name: 'api_creerCategorie', methods: ['POST'])]
+    public function creerCategorie(Request $request, CategorieRepository $categorieRepository, EntityManagerInterface $entityManager, Utils $utils): Response
+    {
+        try {
+            $postdata = json_decode($request->getContent(), true);
+            if ($postdata === null) {
+                throw new \Exception('Invalid JSON.');
+            }
+
+            // Création de la nouvelle catégorie
+            $categorie = new Categorie();
+            if (isset($postdata['nomCategorie'])) {
+                $categorie->setNomCategorie($postdata['nomCategorie']);
+            }
+
+            $entityManager->persist($categorie);
+            $entityManager->flush();
+
+            // Spécifiez ici les champs à ignorer si nécessaire
+            $ignoredFields = ['lesProduits']; // Ajustez selon votre besoin.
+
+            return $utils->GetJsonResponse($request, $categorie, $ignoredFields);
+        } catch (\Exception $e) {
+            return $utils->ErrorCustom('Erreur lors de la création de la catégorie: ' . $e->getMessage());
         }
     }
 }
