@@ -192,6 +192,26 @@ class ApiController extends AbstractController
         }
 
     }
+    #[Route('/api/mobile/GetAllCategories', name: 'app_api_mobile_GetAllCategories')]
+    public function GetAllCategories(Request $request, CategorieRepository $categorieRepository , Utils $utils)
+    {
+        try {
+            $categories = $categorieRepository->findAll();
+    
+            // Vérification si aucune categorie n'a été trouvée
+            if (!$categories) {
+                return $utils->ErrorCustom('Aucune categorie trouvée.');
+            }
+    
+            // Spécifiez ici les champs à ignorer si nécessaire
+            $ignoredFields = ['lesProduits'];
+    
+            return $utils->GetJsonResponse($request, $categories, $ignoredFields);
+        } catch (\Exception $e) {
+            return $utils->ErrorCustom('Erreur: ' . $e->getMessage());
+        }
+
+    }
     #[Route('/api/mobile/creerProduit', name: 'api_CreerProduit', methods: ['POST'])]
     public function CreerProduit(Request $request, ProduitRepository $produitRepository, UserRepository $userRepository,CategorieRepository $categorieRepository , EntityManagerInterface $entityManager, Utils $utils): Response
     {
