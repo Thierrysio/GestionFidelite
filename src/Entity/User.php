@@ -66,12 +66,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255)]
     private ?string $telephone = null;
 
+    #[ORM\OneToMany(targetEntity: Categorie::class, mappedBy: 'leUser')]
+    private Collection $lesCategories;
+
     public function __construct()
     {
         $this->lesProduits = new ArrayCollection();
         $this->lesCommandes = new ArrayCollection();
         $this->lesCommander = new ArrayCollection();
         $this->lesUtiliser = new ArrayCollection();
+        $this->lesCategories = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -337,6 +341,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setTelephone(string $telephone): static
     {
         $this->telephone = $telephone;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Categorie>
+     */
+    public function getLesCategories(): Collection
+    {
+        return $this->lesCategories;
+    }
+
+    public function addLesCategory(Categorie $lesCategory): static
+    {
+        if (!$this->lesCategories->contains($lesCategory)) {
+            $this->lesCategories->add($lesCategory);
+            $lesCategory->setLeUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLesCategory(Categorie $lesCategory): static
+    {
+        if ($this->lesCategories->removeElement($lesCategory)) {
+            // set the owning side to null (unless already changed)
+            if ($lesCategory->getLeUser() === $this) {
+                $lesCategory->setLeUser(null);
+            }
+        }
 
         return $this;
     }

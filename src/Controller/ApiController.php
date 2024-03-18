@@ -196,7 +196,15 @@ class ApiController extends AbstractController
     public function GetAllCategories(Request $request, CategorieRepository $categorieRepository , Utils $utils)
     {
         try {
-            $categories = $categorieRepository->findAll();
+             // Assurez-vous que l'ID de l'utilisateur est fourni
+             if (!isset($postdata['userId'])) {
+                return $utils->ErrorCustom('ID de l\'utilisateur manquant.');
+            }
+            $userId = $postdata['userId'];
+
+            // Récupère tous les produits associés à l'utilisateur spécifique
+            $categories = $categorieRepository->findBy(['leUser' => $userId]);
+         
     
             // Vérification si aucune categorie n'a été trouvée
             if (!$categories) {
@@ -204,7 +212,7 @@ class ApiController extends AbstractController
             }
     
             // Spécifiez ici les champs à ignorer si nécessaire
-            $ignoredFields = ['lesProduits'];
+            $ignoredFields = ['lesProduits','leUser'];
     
             return $utils->GetJsonResponse($request, $categories, $ignoredFields);
         } catch (\Exception $e) {

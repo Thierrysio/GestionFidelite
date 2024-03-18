@@ -21,6 +21,9 @@ class Categorie
     #[ORM\OneToMany(targetEntity: Produit::class, mappedBy: 'laCategorie')]
     private Collection $lesProduits;
 
+    #[ORM\ManyToOne(inversedBy: 'lesCategories')]
+    private ?User $leUser = null;
+
     public function __construct()
     {
         $this->lesProduits = new ArrayCollection();
@@ -69,6 +72,18 @@ class Categorie
                 $lesProduit->setLaCategorie(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getLeUser(): ?User
+    {
+        return $this->leUser;
+    }
+
+    public function setLeUser(?User $leUser): static
+    {
+        $this->leUser = $leUser;
 
         return $this;
     }
