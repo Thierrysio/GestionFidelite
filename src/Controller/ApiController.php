@@ -269,7 +269,7 @@ class ApiController extends AbstractController
             $entityManager->flush();
 
             // Spécifiez ici les champs à ignorer si nécessaire
-            $ignoredFields = ['lesProduits','lesCommandes','lesCommander','lesUtiliser']; // Ajustez selon votre besoin.
+            $ignoredFields = ['leUser','lesProduits','lesCommandes','lesCommander','lesUtiliser']; // Ajustez selon votre besoin.
 
             return $utils->GetJsonResponse($request, $produit, $ignoredFields);
         } catch (\Exception $e) {
