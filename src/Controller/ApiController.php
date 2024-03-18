@@ -332,4 +332,40 @@ class ApiController extends AbstractController
             return $utils->ErrorCustom('Erreur lors de la création de la catégorie: ' . $e->getMessage());
         }
     }
+
+    #[Route('/api/blason/creerBlason', name: 'creer_Blason', methods: ['POST'])]
+    public function creerBlason(Request $request, EntityManagerInterface $entityManager, UserRepository $userRepository, Utils $utils): Response
+    {
+        try {
+            $postData = json_decode($request->getContent(), true);
+            if ($postData === null) {
+                throw new \Exception('Invalid JSON.');
+            }
+
+            // Création du blason
+            $blason = new Blason();
+            $blason->setNomBlason($postData['nomBlason'] ?? '');
+            $blason->setMontantAchats($postData['montantAchats'] ?? 0);
+
+            // Si l'ID de l'utilisateur est fourni, associez cet utilisateur au blason
+            if (isset($postData['Id'])) {
+                $user = $userRepository->find($postData['Id']);
+                if (!$user) {
+                    throw new \Exception('User not found.');
+                }
+                // Associez l'utilisateur au blason
+                $blason->addLesUser($user);
+            }
+
+            $entityManager->persist($blason);
+            $entityManager->flush();
+
+            // Réponse réussie
+            $ignoredFields = ['lesUser']; // Ajustez selon votre besoin.
+
+            return $utils->GetJsonResponse($request, $blason, $ignoredFields);
+        } catch (\Exception $e) {
+            return $utils->ErrorCustom('Erreur lors de la création du blason: ' . $e->getMessage());
+        }
+    }
 }
