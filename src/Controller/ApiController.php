@@ -64,19 +64,31 @@ class ApiController extends AbstractController
     }
 
     #[Route('/api/mobile/GetAllProduits', name: 'app_api_mobile_GetAllProduits')]
-    public function GetAllProduits(Request $request, ProduitRepository $produitRepository , Utils $utils)
+    public function GetAllProduits(Request $request, ProduitRepository $produitRepository, Utils $utils): Response
     {
         try {
-            $produits = $produitRepository->findAll();
-    
-            // Vérification si aucun questionnaire n'a été trouvé
-            if (!$produits) {
-                return $utils->ErrorCustom('Aucun produit trouvé.');
+            $postdata = json_decode($request->getContent(), true);
+            if ($postdata === null) {
+                throw new \Exception('Invalid JSON.');
             }
-    
+
+            // Assurez-vous que l'ID de l'utilisateur est fourni
+            if (!isset($postdata['userId'])) {
+                return $utils->ErrorCustom('ID de l\'utilisateur manquant.');
+            }
+            $userId = $postdata['userId'];
+
+            // Récupère tous les produits associés à l'utilisateur spécifique
+            $produits = $produitRepository->findBy(['leUser' => $userId]);
+
+            // Vérification si aucun produit n'a été trouvé
+            if (!$produits) {
+                return $utils->ErrorCustom('Aucun produit trouvé pour cet utilisateur.');
+            }
+
             // Spécifiez ici les champs à ignorer si nécessaire
             $ignoredFields = ['leUser'];
-    
+
             return $utils->GetJsonResponse($request, $produits, $ignoredFields);
         } catch (\Exception $e) {
             return $utils->ErrorCustom('Erreur: ' . $e->getMessage());
