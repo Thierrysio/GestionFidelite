@@ -196,6 +196,10 @@ class ApiController extends AbstractController
     public function GetAllCategories(Request $request, CategorieRepository $categorieRepository , Utils $utils)
     {
         try {
+            $postdata = json_decode($request->getContent(), true);
+            if ($postdata === null) {
+                throw new \Exception('Invalid JSON.');
+            }
              // Assurez-vous que l'ID de l'utilisateur est fourni
              if (!isset($postdata['Id'])) {
                 return $utils->ErrorCustom('ID de l\'utilisateur manquant.');
