@@ -225,7 +225,7 @@ class ApiController extends AbstractController
 
     }
     #[Route('/api/mobile/creerProduit', name: 'api_CreerProduit', methods: ['POST'])]
-    public function CreerProduit(Request $request, ProduitRepository $produitRepository, UserRepository $userRepository,CategorieRepository $categorieRepository , EntityManagerInterface $entityManager, Utils $utils): Response
+    public function CreerProduit(Request $request, ProduitRepository $produitRepository, UserRepository $userRepository, CategorieRepository $categorieRepository, EntityManagerInterface $entityManager, Utils $utils): Response
     {
         try {
             $postdata = json_decode($request->getContent(), true);
@@ -233,14 +233,6 @@ class ApiController extends AbstractController
                 throw new \Exception('Invalid JSON.');
             }
 
-            // Récupération de la categorie à partir de l'ID fourni
-            if (!isset($postdata['categorieId'])) {
-                throw new \Exception('Categorie ID is missing.');
-            }
-            $categorie = $categorieRepository->find($postdata['categorieId']);
-            if (!$categorie) {
-                throw new \Exception('User not found.');
-            }
             // Récupération du User à partir de l'ID fourni
             if (!isset($postdata['Id'])) {
                 throw new \Exception('User ID is missing.');
@@ -263,8 +255,15 @@ class ApiController extends AbstractController
 
             // Association de l'utilisateur au produit
             $produit->setLeUser($user);
-             // Association de la categorie au produit
-             $produit->setLaCategorie($categorie);
+
+            // Association de la categorie au produit si categorieId est fourni
+            if (isset($postdata['categorieId'])) {
+                $categorie = $categorieRepository->find($postdata['categorieId']);
+                if (!$categorie) {
+                    throw new \Exception('Category not found.');
+                }
+                $produit->setLaCategorie($categorie);
+            }
 
             $entityManager->persist($produit);
             $entityManager->flush();
