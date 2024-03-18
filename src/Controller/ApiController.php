@@ -1,8 +1,18 @@
 <?php
 
 namespace App\Controller;
-use App\Repository\UserRepository;
+
+use App\Entity\Blason;
+use App\Entity\Produit;
+use App\Repository\BlasonRepository;
+use App\Repository\CommandeRepository;
+use App\Repository\CommanderRepository;
+use App\Repository\PalierRepository;
 use App\Repository\ProduitRepository;
+use App\Repository\RecompenseRepository;
+use App\Repository\UserRepository;
+use App\Repository\UtiliserRepository;
+
 
 use App\Utils\Utils;
 use Doctrine\ORM\EntityManagerInterface;
@@ -126,6 +136,88 @@ class ApiController extends AbstractController
             return $utils->GetJsonResponse($request, $user, $ignoredFields);
         } catch (\Exception $e) {
             return $utils->ErrorCustom('Erreur lors de la création de l\'utilisateur: ' . $e->getMessage());
+        }
+    }
+    #[Route('/api/mobile/GetAllBlasons', name: 'app_api_mobile_GetAllBlasons')]
+    public function GetAllBlasons(Request $request, BlasonRepository $blasonRepository , Utils $utils)
+    {
+        try {
+            $blasons = $blasonRepository->findAll();
+    
+            // Vérification si aucun blason n'a été trouvé
+            if (!$blasons) {
+                return $utils->ErrorCustom('Aucun produit trouvé.');
+            }
+    
+            // Spécifiez ici les champs à ignorer si nécessaire
+            $ignoredFields = ['lesUser'];
+    
+            return $utils->GetJsonResponse($request, $blasons, $ignoredFields);
+        } catch (\Exception $e) {
+            return $utils->ErrorCustom('Erreur: ' . $e->getMessage());
+        }
+    }
+    #[Route('/api/mobile/GetAllCommandes', name: 'app_api_mobile_GetAllCommandes')]
+    public function GetAllCommandes(Request $request, CommandeRepository $commandeRepository , Utils $utils)
+    {
+        try {
+            $commandes = $commandeRepository->findAll();
+    
+            // Vérification si aucune commande n'a été trouvée
+            if (!$commandes) {
+                return $utils->ErrorCustom('Aucune commande trouvée.');
+            }
+    
+            // Spécifiez ici les champs à ignorer si nécessaire
+            $ignoredFields = ['leUser','lesCommander'];
+    
+            return $utils->GetJsonResponse($request, $commandes, $ignoredFields);
+        } catch (\Exception $e) {
+            return $utils->ErrorCustom('Erreur: ' . $e->getMessage());
+        }
+
+    }
+    #[Route('/api/mobile/creerProduit', name: 'api_CreerProduit', methods: ['POST'])]
+    public function CreerProduit(Request $request, ProduitRepository $produitRepository, UserRepository $userRepository, EntityManagerInterface $entityManager, Utils $utils): Response
+    {
+        try {
+            $postdata = json_decode($request->getContent(), true);
+            if ($postdata === null) {
+                throw new \Exception('Invalid JSON.');
+            }
+
+            // Récupération de l'utilisateur à partir de l'ID fourni
+            if (!isset($postdata['userId'])) {
+                throw new \Exception('User ID is missing.');
+            }
+            $user = $userRepository->find($postdata['userId']);
+            if (!$user) {
+                throw new \Exception('User not found.');
+            }
+
+            $produit = new Produit();
+            if (isset($postdata['nomProduit'])) {
+                $produit->setNomProduit($postdata['nomProduit']);
+            }
+            if (isset($postdata['prixProduit'])) {
+                $produit->setPrixProduit($postdata['prixProduit']);
+            }
+            if (isset($postdata['pointsFidelite'])) {
+                $produit->setPointsFidelite($postdata['pointsFidelite']);
+            }
+
+            // Association de l'utilisateur au produit
+            $produit->setLeUser($user);
+
+            $entityManager->persist($produit);
+            $entityManager->flush();
+
+            // Spécifiez ici les champs à ignorer si nécessaire
+            $ignoredFields = ['lesProduits','lesCommandes','lesCommander','lesUtiliser']; // Ajustez selon votre besoin.
+
+            return $utils->GetJsonResponse($request, $produit, $ignoredFields);
+        } catch (\Exception $e) {
+            return $utils->ErrorCustom('Erreur lors de la création du produit: ' . $e->getMessage());
         }
     }
 }
