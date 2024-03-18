@@ -73,10 +73,10 @@ class ApiController extends AbstractController
             }
 
             // Assurez-vous que l'ID de l'utilisateur est fourni
-            if (!isset($postdata['userId'])) {
+            if (!isset($postdata['Id'])) {
                 return $utils->ErrorCustom('ID de l\'utilisateur manquant.');
             }
-            $userId = $postdata['userId'];
+            $userId = $postdata['Id'];
 
             // Récupère tous les produits associés à l'utilisateur spécifique
             $produits = $produitRepository->findBy(['leUser' => $userId]);
@@ -192,15 +192,15 @@ class ApiController extends AbstractController
         }
 
     }
-    #[Route('/api/mobile/GetAllCategories', name: 'app_api_mobile_GetAllCategories')]
+    #[Route('/api/mobile/GetAllCategories', name: 'app_api_mobile_GetAllCategories', methods: ['POST'])]
     public function GetAllCategories(Request $request, CategorieRepository $categorieRepository , Utils $utils)
     {
         try {
              // Assurez-vous que l'ID de l'utilisateur est fourni
-             if (!isset($postdata['userId'])) {
+             if (!isset($postdata['Id'])) {
                 return $utils->ErrorCustom('ID de l\'utilisateur manquant.');
             }
-            $userId = $postdata['userId'];
+            $userId = $postdata['Id'];
 
             // Récupère tous les produits associés à l'utilisateur spécifique
             $categories = $categorieRepository->findBy(['leUser' => $userId]);
@@ -238,10 +238,10 @@ class ApiController extends AbstractController
                 throw new \Exception('User not found.');
             }
             // Récupération du User à partir de l'ID fourni
-            if (!isset($postdata['userId'])) {
+            if (!isset($postdata['Id'])) {
                 throw new \Exception('User ID is missing.');
             }
-            $user = $userRepository->find($postdata['userId']);
+            $user = $userRepository->find($postdata['Id']);
             if (!$user) {
                 throw new \Exception('User not found.');
             }
@@ -283,10 +283,10 @@ class ApiController extends AbstractController
                 throw new \Exception('Invalid JSON.');
             }
              // Récupération du User à partir de l'ID fourni
-             if (!isset($postdata['userId'])) {
+             if (!isset($postdata['Id'])) {
                 throw new \Exception('User ID is missing.');
             }
-            $user = $userRepository->find($postdata['userId']);
+            $user = $userRepository->find($postdata['Id']);
             if (!$user) {
                 throw new \Exception('User not found.');
             }
