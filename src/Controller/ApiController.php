@@ -157,7 +157,18 @@ class ApiController extends AbstractController
     public function GetAllBlasons(Request $request, BlasonRepository $blasonRepository , Utils $utils)
     {
         try {
-            $blasons = $blasonRepository->findAll();
+            $postdata = json_decode($request->getContent(), true);
+            if ($postdata === null) {
+                throw new \Exception('Invalid JSON.');
+            }
+             // Assurez-vous que l'ID de l'utilisateur est fourni
+             if (!isset($postdata['Id'])) {
+                return $utils->ErrorCustom('ID de l\'utilisateur manquant.');
+            }
+            $userId = $postdata['Id'];
+
+            // Récupère tous les produits associés à l'utilisateur spécifique
+            $blasons = $blasonRepository->findBy(['leUser' => $userId]);
     
             // Vérification si aucun blason n'a été trouvé
             if (!$blasons) {
@@ -232,7 +243,7 @@ class ApiController extends AbstractController
             if ($postdata === null) {
                 throw new \Exception('Invalid JSON.');
             }
-
+    
             // Récupération du User à partir de l'ID fourni
             if (!isset($postdata['Id'])) {
                 throw new \Exception('User ID is missing.');
@@ -241,7 +252,7 @@ class ApiController extends AbstractController
             if (!$user) {
                 throw new \Exception('User not found.');
             }
-
+    
             $produit = new Produit();
             if (isset($postdata['nomProduit'])) {
                 $produit->setNomProduit($postdata['nomProduit']);
@@ -252,10 +263,17 @@ class ApiController extends AbstractController
             if (isset($postdata['pointsFidelite'])) {
                 $produit->setPointsFidelite($postdata['pointsFidelite']);
             }
-
+    
+            // Gestion de l'imageUrl de manière optionnelle
+            if (isset($postdata['imageUrl'])) {
+                $produit->setImageUrl($postdata['imageUrl']);
+            } else {
+                //une image par defaut
+            }
+    
             // Association de l'utilisateur au produit
             $produit->setLeUser($user);
-
+    
             // Association de la categorie au produit si categorieId est fourni
             if (isset($postdata['categorieId'])) {
                 $categorie = $categorieRepository->find($postdata['categorieId']);
@@ -264,18 +282,19 @@ class ApiController extends AbstractController
                 }
                 $produit->setLaCategorie($categorie);
             }
-
+    
             $entityManager->persist($produit);
             $entityManager->flush();
-
+    
             // Spécifiez ici les champs à ignorer si nécessaire
             $ignoredFields = ['leUser','lesProduits','lesCommandes','lesCommander','lesUtiliser']; // Ajustez selon votre besoin.
-
+    
             return $utils->GetJsonResponse($request, $produit, $ignoredFields);
         } catch (\Exception $e) {
             return $utils->ErrorCustom('Erreur lors de la création du produit: ' . $e->getMessage());
         }
     }
+    
 
     #[Route('/api/mobile/creerCategorie', name: 'api_creerCategorie', methods: ['POST'])]
     public function creerCategorie(Request $request,UserRepository $userRepository, CategorieRepository $categorieRepository, EntityManagerInterface $entityManager, Utils $utils): Response
