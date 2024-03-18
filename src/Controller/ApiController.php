@@ -275,12 +275,20 @@ class ApiController extends AbstractController
     }
 
     #[Route('/api/mobile/creerCategorie', name: 'api_creerCategorie', methods: ['POST'])]
-    public function creerCategorie(Request $request, CategorieRepository $categorieRepository, EntityManagerInterface $entityManager, Utils $utils): Response
+    public function creerCategorie(Request $request,UserRepository $userRepository, CategorieRepository $categorieRepository, EntityManagerInterface $entityManager, Utils $utils): Response
     {
         try {
             $postdata = json_decode($request->getContent(), true);
             if ($postdata === null) {
                 throw new \Exception('Invalid JSON.');
+            }
+             // Récupération du User à partir de l'ID fourni
+             if (!isset($postdata['userId'])) {
+                throw new \Exception('User ID is missing.');
+            }
+            $user = $userRepository->find($postdata['userId']);
+            if (!$user) {
+                throw new \Exception('User not found.');
             }
 
             // Création de la nouvelle catégorie
@@ -288,6 +296,8 @@ class ApiController extends AbstractController
             if (isset($postdata['nomCategorie'])) {
                 $categorie->setNomCategorie($postdata['nomCategorie']);
             }
+
+            $categorie->setLeUser($user);
 
             $entityManager->persist($categorie);
             $entityManager->flush();
