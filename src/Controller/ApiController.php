@@ -87,7 +87,7 @@ class ApiController extends AbstractController
             }
 
             // Spécifiez ici les champs à ignorer si nécessaire
-            $ignoredFields = ['leUser'];
+            $ignoredFields = ['leUser','lesProduits'];
 
             return $utils->GetJsonResponse($request, $produits, $ignoredFields);
         } catch (\Exception $e) {
