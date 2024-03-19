@@ -25,7 +25,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\Common\Collections\Collection;
-
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface; // Pour Symfony 5.3 et ultérieur
 
 
@@ -368,4 +369,72 @@ class ApiController extends AbstractController
             return $utils->ErrorCustom('Erreur lors de la création du blason: ' . $e->getMessage());
         }
     }
+
+    #[Route('/api/mobile/updateUser', name: 'api_update_user', methods: ['POST'])]
+    public function updateUser(Request $request, UserRepository $userRepository, EntityManagerInterface $entityManager, SerializerInterface $serializer, ValidatorInterface $validator, Utils $utils): Response
+    {
+        try {
+            $postdata = json_decode($request->getContent(), true);
+            if ($postdata === null) {
+                throw new \Exception('Invalid JSON.');
+            }
+    
+            if (!isset($postdata['id'])) {
+                throw new \Exception('User ID is missing.');
+            }
+    
+            $user = $userRepository->find($postdata['id']);
+            if (!$user) {
+                throw new \Exception('User not found.');
+            }
+    
+            // Mise à jour des attributs de l'utilisateur avec les données reçues
+            if (isset($postdata['email'])) {
+                $user->setEmail($postdata['email']);
+            }
+            if (isset($postdata['roles'])) {
+                $user->setRoles($postdata['roles']);
+            }
+            if (isset($postdata['password'])) {
+                // Ici, vous devriez probablement hasher le mot de passe avant de le définir
+                $user->setPassword($postdata['password']);
+            }
+            if (isset($postdata['nom'])) {
+                $user->setNom($postdata['nom']);
+            }
+            if (isset($postdata['prenom'])) {
+                $user->setPrenom($postdata['prenom']);
+            }
+            if (isset($postdata['dateNaissance'])) {
+                // Assurez-vous de convertir la date en un objet \DateTime
+                $dateNaissance = new \DateTime($postdata['dateNaissance']);
+                $user->setDateNaissance($dateNaissance);
+            }
+            if (isset($postdata['telephone'])) {
+                $user->setTelephone($postdata['telephone']);
+            }
+            if (isset($postdata['stockPointsFidelite'])) {
+                $user->setTelephone($postdata['StockPointsFidelite']);
+            }
+            
+    
+            // Validation des données
+            $errors = $validator->validate($user);
+            if (count($errors) > 0) {
+                return new Response($serializer->serialize($errors, 'json'), Response::HTTP_BAD_REQUEST);
+            }
+    
+            $entityManager->flush();
+
+            // Spécifiez ici les champs que vous souhaitez ignorer dans la réponse JSON
+            $ignoredFields = ['userIdentifier','password', 'roles','lesCommandes','lesCommander','lesUtiliser','lesProduits']; // Exemple: ignorez les champs sensibles comme le mot de passe et les rôles
+    
+            // Utilisation de $utils->GetJsonResponse pour retourner l'utilisateur modifié
+            return $utils->GetJsonResponse($request, $user, $ignoredFields);
+        } catch (\Exception $e) {
+            return new Response(json_encode(['error' => $e->getMessage()]), Response::HTTP_BAD_REQUEST);
+        }
+    }
+    
+
 }
