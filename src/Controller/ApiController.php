@@ -414,7 +414,7 @@ class ApiController extends AbstractController
                 $user->setTelephone($postdata['telephone']);
             }
             if (isset($postdata['stockPointsFidelite'])) {
-                $user->setTelephone($postdata['StockPointsFidelite']);
+                $user->setStockPointsFidelite($postdata['StockPointsFidelite']);
             }
             
     
