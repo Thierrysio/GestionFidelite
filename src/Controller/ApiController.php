@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Entity\Categorie;
 use App\Entity\Commande;
 use App\Entity\Commander;
+use App\Entity\Utiliser;
 
 use App\Repository\BlasonRepository;
 use App\Repository\CommandeRepository;
@@ -518,6 +519,50 @@ public function creerCommander(Request $request, CommandeRepository $commandeRep
         $ignoredFields = ['laCommande', 'leUser']; // Ajustez selon votre besoin
         
         return $utils->GetJsonResponse($request, $commander, $ignoredFields);
+    } catch (\Exception $e) {
+        return new Response(json_encode(['error' => $e->getMessage()]), Response::HTTP_BAD_REQUEST);
+    }
+}
+#[Route('/api/mobile/creerUtiliser', name: 'api_creer_utiliser', methods: ['POST'])]
+public function creerUtiliser(Request $request, RecompenseRepository $recompenseRepository, UserRepository $userRepository, EntityManagerInterface $entityManager, Utils $utils): Response
+{
+    try {
+        $postdata = json_decode($request->getContent(), true);
+        if ($postdata === null) {
+            throw new \Exception('Invalid JSON.');
+        }
+
+        if (!isset($postdata['laRecompense'])) {
+            throw new \Exception('Recompense ID is missing.');
+        }
+        
+        if (!isset($postdata['leUser'])) {
+            throw new \Exception('User ID is missing.');
+        }
+
+        $recompense = $recompenseRepository->find($postdata['laRecompense']);
+        if (!$recompense) {
+            throw new \Exception('Recompense not found.');
+        }
+
+        $user = $userRepository->find($postdata['leUser']);
+        if (!$user) {
+            throw new \Exception('User not found.');
+        }
+
+        $utiliser = new Utiliser();
+        $utiliser->setLaRecompense($recompense);
+        $utiliser->setLeUser($user);
+        $utiliser->setDateUtiliser(new \DateTime()); // Assumer la date d'utilisation comme étant maintenant
+
+        $entityManager->persist($utiliser);
+        $entityManager->flush();
+
+        // Utilisation de $utils->GetJsonResponse pour retourner l'entité Utiliser créée
+        // Spécifiez ici les champs à ignorer si nécessaire
+        $ignoredFields = ['laRecompense', 'leUser']; // Ajustez selon votre besoin
+        
+        return $utils->GetJsonResponse($request, $utiliser, $ignoredFields);
     } catch (\Exception $e) {
         return new Response(json_encode(['error' => $e->getMessage()]), Response::HTTP_BAD_REQUEST);
     }
