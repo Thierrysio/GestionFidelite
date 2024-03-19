@@ -6,6 +6,8 @@ use App\Entity\Blason;
 use App\Entity\Produit;
 use App\Entity\User;
 use App\Entity\Categorie;
+use App\Entity\Commande;
+use App\Entity\Commander;
 
 use App\Repository\BlasonRepository;
 use App\Repository\CommandeRepository;
@@ -436,5 +438,88 @@ class ApiController extends AbstractController
         }
     }
     
+    #[Route('/api/mobile/creerCommande', name: 'api_creer_commande', methods: ['POST'])]
+    public function creerCommande(Request $request, UserRepository $userRepository, CommandeRepository $commandeRepository, EntityManagerInterface $entityManager, Utils $utils): Response
+    {
+        try {
+            $postdata = json_decode($request->getContent(), true);
+            if ($postdata === null) {
+                throw new \Exception('Invalid JSON.');
+            }
+    
+            if (!isset($postdata['Id'])) {
+                throw new \Exception('User ID is missing.');
+            }
+            
+            $user = $userRepository->find($postdata['Id']);
+            if (!$user) {
+                throw new \Exception('User not found.');
+            }
+    
+            $commande = new Commande();
+            $commande->setDateCommande(new \DateTime()); // Assumer la date de commande comme étant maintenant
+            $commande->setLeUser($user);
+    
+            // Ici, ajoutez toute autre logique spécifique, comme la gestion des éléments de la commande
+            
+            $entityManager->persist($commande);
+            $entityManager->flush();
+    
+            // Utilisation de $utils->GetJsonResponse pour retourner la commande créée
+            // Spécifiez ici les champs à ignorer si nécessaire
+            $ignoredFields = ['leUser', 'lesCommander']; // Ajustez selon votre besoin
+            
+            return $utils->GetJsonResponse($request, $commande, $ignoredFields);
+        } catch (\Exception $e) {
+            return new Response(json_encode(['error' => $e->getMessage()]), Response::HTTP_BAD_REQUEST);
+        }
+    }
+    #[Route('/api/mobile/creerCommander', name: 'api_creer_commander', methods: ['POST'])]
+public function creerCommander(Request $request, CommandeRepository $commandeRepository, UserRepository $userRepository, EntityManagerInterface $entityManager, Utils $utils): Response
+{
+    try {
+        $postdata = json_decode($request->getContent(), true);
+        if ($postdata === null) {
+            throw new \Exception('Invalid JSON.');
+        }
 
+        if (!isset($postdata['laCommande'])) {
+            throw new \Exception('Commande ID is missing.');
+        }
+        
+        if (!isset($postdata['leUser'])) {
+            throw new \Exception('User ID is missing.');
+        }
+        
+        if (!isset($postdata['quantite'])) {
+            throw new \Exception('Quantity is missing.');
+        }
+
+        $commande = $commandeRepository->find($postdata['laCommande']);
+        if (!$commande) {
+            throw new \Exception('Commande not found.');
+        }
+
+        $user = $userRepository->find($postdata['leUser']);
+        if (!$user) {
+            throw new \Exception('User not found.');
+        }
+
+        $commander = new Commander();
+        $commander->setLaCommande($commande);
+        $commander->setLeUser($user);
+        $commander->setQuantite($postdata['quantite']);
+
+        $entityManager->persist($commander);
+        $entityManager->flush();
+
+        // Utilisation de $utils->GetJsonResponse pour retourner l'entité Commander créée
+        // Spécifiez ici les champs à ignorer si nécessaire
+        $ignoredFields = ['laCommande', 'leUser']; // Ajustez selon votre besoin
+        
+        return $utils->GetJsonResponse($request, $commander, $ignoredFields);
+    } catch (\Exception $e) {
+        return new Response(json_encode(['error' => $e->getMessage()]), Response::HTTP_BAD_REQUEST);
+    }
+}
 }
