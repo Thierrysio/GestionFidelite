@@ -165,18 +165,13 @@ class ApiController extends AbstractController
             if ($postdata === null) {
                 throw new \Exception('Invalid JSON.');
             }
-             // Assurez-vous que l'ID de l'utilisateur est fourni
-             if (!isset($postdata['Id'])) {
-                return $utils->ErrorCustom('ID de l\'utilisateur manquant.');
-            }
-            $userId = $postdata['Id'];
 
             // Récupère tous les produits associés à l'utilisateur spécifique
-            $blasons = $blasonRepository->findBy(['leUser' => $userId]);
+            $blasons = $blasonRepository->findAll();
     
             // Vérification si aucun blason n'a été trouvé
             if (!$blasons) {
-                return $utils->ErrorCustom('Aucun produit trouvé.');
+                return $utils->ErrorCustom('Aucun blason trouvé.');
             }
     
             // Spécifiez ici les champs à ignorer si nécessaire
