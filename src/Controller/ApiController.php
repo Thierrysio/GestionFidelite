@@ -388,10 +388,6 @@ class ApiController extends AbstractController
             if (isset($postdata['roles'])) {
                 $user->setRoles($postdata['roles']);
             }
-            if (isset($postdata['password'])) {
-                // Ici, vous devriez probablement hasher le mot de passe avant de le définir
-                $user->setPassword($postdata['password']);
-            }
             if (isset($postdata['nom'])) {
                 $user->setNom($postdata['nom']);
             }
