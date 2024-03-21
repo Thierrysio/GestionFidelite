@@ -351,16 +351,6 @@ class ApiController extends AbstractController
             $blason->setNomBlason($postData['nomBlason'] ?? '');
             $blason->setMontantAchats($postData['montantAchats'] ?? 0);
 
-            // Si l'ID de l'utilisateur est fourni, associez cet utilisateur au blason
-            if (isset($postData['Id'])) {
-                $user = $userRepository->find($postData['Id']);
-                if (!$user) {
-                    throw new \Exception('User not found.');
-                }
-                // Associez l'utilisateur au blason
-                $blason->addLesUser($user);
-            }
-
             $entityManager->persist($blason);
             $entityManager->flush();
 
@@ -419,8 +409,9 @@ class ApiController extends AbstractController
             if (isset($postdata['stockPointsFidelite'])) {
                 $user->setStockPointsFidelite($postdata['StockPointsFidelite']);
             }
-            
-    
+            if (isset($postdata['leBlason'])) {
+                $user->setLeBlason($postdata['leBlason']);
+            }
             // Validation des données
             $errors = $validator->validate($user);
             if (count($errors) > 0) {
@@ -476,7 +467,7 @@ class ApiController extends AbstractController
         }
     }
     #[Route('/api/mobile/creerCommander', name: 'api_creer_commander', methods: ['POST'])]
-public function creerCommander(Request $request, CommandeRepository $commandeRepository, UserRepository $userRepository, EntityManagerInterface $entityManager, Utils $utils): Response
+public function creerCommander(Request $request, ProduitRepository $produitRepository, CommandeRepository $commandeRepository, UserRepository $userRepository, EntityManagerInterface $entityManager, Utils $utils): Response
 {
     try {
         $postdata = json_decode($request->getContent(), true);
@@ -484,41 +475,24 @@ public function creerCommander(Request $request, CommandeRepository $commandeRep
             throw new \Exception('Invalid JSON.');
         }
 
-        if (!isset($postdata['laCommande'])) {
-            throw new \Exception('Commande ID is missing.');
-        }
-        
-        if (!isset($postdata['leUser'])) {
-            throw new \Exception('User ID is missing.');
-        }
-        
-        if (!isset($postdata['quantite'])) {
-            throw new \Exception('Quantity is missing.');
-        }
+        // Récupération et vérification de l'existence du Produit, de l'User et de la Commande
+        $produit = $produitRepository->find($postdata['leProduit'] ?? null);
+        $commande = $commandeRepository->find($postdata['laCommande'] ?? null);
 
-        $commande = $commandeRepository->find($postdata['laCommande']);
-        if (!$commande) {
-            throw new \Exception('Commande not found.');
-        }
-
-        $user = $userRepository->find($postdata['leUser']);
-        if (!$user) {
-            throw new \Exception('User not found.');
+        if (!$produit || !$commande) {
+            throw new \Exception('Produit, User, or Commande not found.');
         }
 
         $commander = new Commander();
+        $commander->setLeProduit($produit);
         $commander->setLaCommande($commande);
-        $commander->setLeUser($user);
-        $commander->setQuantite($postdata['quantite']);
+        $commander->setQuantite($postdata['quantite'] ?? 0);
 
         $entityManager->persist($commander);
         $entityManager->flush();
 
-        // Utilisation de $utils->GetJsonResponse pour retourner l'entité Commander créée
-        // Spécifiez ici les champs à ignorer si nécessaire
-        $ignoredFields = ['laCommande', 'leUser']; // Ajustez selon votre besoin
-        
-        return $utils->GetJsonResponse($request, $commander, $ignoredFields);
+        // Répondre avec l'entité `Commander` créée, ajustez les champs à ignorer selon le besoin
+        return $utils->GetJsonResponse($request, $commander, ['leUser', 'laCommande', 'leProduit']);
     } catch (\Exception $e) {
         return new Response(json_encode(['error' => $e->getMessage()]), Response::HTTP_BAD_REQUEST);
     }

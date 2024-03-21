@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\ProduitRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ProduitRepository::class)]
@@ -30,6 +32,14 @@ class Produit
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $imageUrl = null;
+
+    #[ORM\OneToMany(targetEntity: Commander::class, mappedBy: 'leProduit')]
+    private Collection $lesCommander;
+
+    public function __construct()
+    {
+        $this->lesCommander = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -104,6 +114,36 @@ class Produit
     public function setImageUrl(?string $imageUrl): static
     {
         $this->imageUrl = $imageUrl;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Commander>
+     */
+    public function getLesCommander(): Collection
+    {
+        return $this->lesCommander;
+    }
+
+    public function addLesCommander(Commander $lesCommander): static
+    {
+        if (!$this->lesCommander->contains($lesCommander)) {
+            $this->lesCommander->add($lesCommander);
+            $lesCommander->setLeProduit($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLesCommander(Commander $lesCommander): static
+    {
+        if ($this->lesCommander->removeElement($lesCommander)) {
+            // set the owning side to null (unless already changed)
+            if ($lesCommander->getLeProduit() === $this) {
+                $lesCommander->setLeProduit(null);
+            }
+        }
 
         return $this;
     }
