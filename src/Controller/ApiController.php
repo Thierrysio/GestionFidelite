@@ -649,11 +649,46 @@ public function CreerRecompense(Request $request, UserRepository $userRepository
         $entityManager->flush();
 
         // Ignorer les champs non nécessaires dans la réponse JSON
-        $ignoredFields = ['leUser', 'lesUtiliser','leProduit']; // Ajustez selon votre besoin.
+        $ignoredFields = ['leUser', 'lesUtiliser','leProduit','lesRecompenses']; // Ajustez selon votre besoin.
 
         return $utils->GetJsonResponse($request, $recompense, $ignoredFields);
     } catch (\Exception $e) {
         return $utils->ErrorCustom('Erreur lors de la création de la récompense: ' . $e->getMessage());
     }
 }
+
+#[Route('/api/mobile/getAllRecompenses', name: 'app_api_mobile_getAllRecompenses')]
+    public function getAllRecompenses(Request $request, UserRepository $userRepository, RecompenseRepository $recompenseRepository, Utils $utils): Response
+    {
+        try {
+            $postdata = json_decode($request->getContent(), true);
+            if ($postdata === null) {
+                throw new \Exception('Invalid JSON.');
+            }
+
+            // Vérification de la présence de l'ID de l'utilisateur
+            if (!isset($postdata['Id'])) {
+                return $utils->ErrorCustom('ID de l\'utilisateur manquant.');
+            }
+            $userId = $postdata['Id'];
+            $user = $userRepository->find($userId);
+            if (!$user) {
+                throw new \Exception('Utilisateur non trouvé.');
+            }
+
+            $recompenses = $recompenseRepository->findBy(['leUser' => $user]);
+
+            // Vérification si aucune récompense n'a été trouvée
+            if (!$recompenses) {
+                return $utils->ErrorCustom('Aucune récompense trouvée.');
+            }
+
+            // Spécification des champs à ignorer dans la réponse JSON, si nécessaire
+            $ignoredFields = ['leUser', 'lesUtiliser','lesRecompenses','lesCommander'];
+
+            return $utils->GetJsonResponse($request, $recompenses, $ignoredFields);
+        } catch (\Exception $e) {
+            return $utils->ErrorCustom('Erreur: ' . $e->getMessage());
+        }
+    }
 }
