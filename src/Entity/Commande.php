@@ -25,8 +25,8 @@ class Commande
     #[ORM\OneToMany(targetEntity: Commander::class, mappedBy: 'laCommande')]
     private Collection $lesCommander;
 
-    #[ORM\Column(length: 255)]
-    private ?string $etat = null;
+    #[ORM\Column(length: 255, nullable: true)]
+private ?string $etat = null;
 
     public function __construct()
     {

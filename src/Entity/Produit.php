@@ -36,9 +36,13 @@ class Produit
     #[ORM\OneToMany(targetEntity: Commander::class, mappedBy: 'leProduit')]
     private Collection $lesCommander;
 
+    #[ORM\OneToMany(targetEntity: Recompense::class, mappedBy: 'leProduit')]
+    private Collection $lesRecompenses;
+
     public function __construct()
     {
         $this->lesCommander = new ArrayCollection();
+        $this->lesRecompenses = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -142,6 +146,36 @@ class Produit
             // set the owning side to null (unless already changed)
             if ($lesCommander->getLeProduit() === $this) {
                 $lesCommander->setLeProduit(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Recompense>
+     */
+    public function getLesRecompenses(): Collection
+    {
+        return $this->lesRecompenses;
+    }
+
+    public function addLesRecompense(Recompense $lesRecompense): static
+    {
+        if (!$this->lesRecompenses->contains($lesRecompense)) {
+            $this->lesRecompenses->add($lesRecompense);
+            $lesRecompense->setLeProduit($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLesRecompense(Recompense $lesRecompense): static
+    {
+        if ($this->lesRecompenses->removeElement($lesRecompense)) {
+            // set the owning side to null (unless already changed)
+            if ($lesRecompense->getLeProduit() === $this) {
+                $lesRecompense->setLeProduit(null);
             }
         }
 

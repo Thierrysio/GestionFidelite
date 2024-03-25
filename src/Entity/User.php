@@ -69,6 +69,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Categorie::class, mappedBy: 'leUser')]
     private Collection $lesCategories;
 
+    #[ORM\OneToMany(targetEntity: Recompense::class, mappedBy: 'leUser')]
+    private Collection $lesRecompenses;
+
     public function __construct()
     {
         $this->lesProduits = new ArrayCollection();
@@ -76,6 +79,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->lesCommander = new ArrayCollection();
         $this->lesUtiliser = new ArrayCollection();
         $this->lesCategories = new ArrayCollection();
+        $this->lesRecompenses = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -369,6 +373,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($lesCategory->getLeUser() === $this) {
                 $lesCategory->setLeUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Recompense>
+     */
+    public function getLesRecompenses(): Collection
+    {
+        return $this->lesRecompenses;
+    }
+
+    public function addLesRecompense(Recompense $lesRecompense): static
+    {
+        if (!$this->lesRecompenses->contains($lesRecompense)) {
+            $this->lesRecompenses->add($lesRecompense);
+            $lesRecompense->setLeUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLesRecompense(Recompense $lesRecompense): static
+    {
+        if ($this->lesRecompenses->removeElement($lesRecompense)) {
+            // set the owning side to null (unless already changed)
+            if ($lesRecompense->getLeUser() === $this) {
+                $lesRecompense->setLeUser(null);
             }
         }
 

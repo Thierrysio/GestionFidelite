@@ -27,6 +27,12 @@ class Recompense
     #[ORM\OneToMany(targetEntity: Utiliser::class, mappedBy: 'laRecompense')]
     private Collection $lesUtiliser;
 
+    #[ORM\ManyToOne(inversedBy: 'lesRecompenses')]
+    private ?User $leUser = null;
+
+    #[ORM\ManyToOne(inversedBy: 'lesRecompenses')]
+    private ?Produit $leProduit = null;
+
     public function __construct()
     {
         $this->lesUtiliser = new ArrayCollection();
@@ -99,6 +105,30 @@ class Recompense
                 $lesUtiliser->setLaRecompense(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getLeUser(): ?User
+    {
+        return $this->leUser;
+    }
+
+    public function setLeUser(?User $leUser): static
+    {
+        $this->leUser = $leUser;
+
+        return $this;
+    }
+
+    public function getLeProduit(): ?Produit
+    {
+        return $this->leProduit;
+    }
+
+    public function setLeProduit(?Produit $leProduit): static
+    {
+        $this->leProduit = $leProduit;
 
         return $this;
     }

@@ -24,6 +24,9 @@ class Categorie
     #[ORM\ManyToOne(inversedBy: 'lesCategories')]
     private ?User $leUser = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $urlImage = null;
+
     public function __construct()
     {
         $this->lesProduits = new ArrayCollection();
@@ -84,6 +87,18 @@ class Categorie
     public function setLeUser(?User $leUser): static
     {
         $this->leUser = $leUser;
+
+        return $this;
+    }
+
+    public function getUrlImage(): ?string
+    {
+        return $this->urlImage;
+    }
+
+    public function setUrlImage(?string $urlImage): static
+    {
+        $this->urlImage = $urlImage;
 
         return $this;
     }

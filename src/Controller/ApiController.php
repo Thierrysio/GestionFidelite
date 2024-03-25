@@ -9,6 +9,7 @@ use App\Entity\Categorie;
 use App\Entity\Commande;
 use App\Entity\Commander;
 use App\Entity\Utiliser;
+use App\Entity\Recompense;
 
 use App\Repository\BlasonRepository;
 use App\Repository\CommandeRepository;
@@ -183,10 +184,58 @@ class ApiController extends AbstractController
         }
     }
     #[Route('/api/mobile/GetAllCommandes', name: 'app_api_mobile_GetAllCommandes')]
-    public function GetAllCommandes(Request $request, CommandeRepository $commandeRepository , Utils $utils)
+    public function GetAllCommandes(Request $request,UserRepository $userRepository, CommandeRepository $commandeRepository , Utils $utils)
     {
         try {
-            $commandes = $commandeRepository->findAll();
+            $postdata = json_decode($request->getContent(), true);
+            if ($postdata === null) {
+                throw new \Exception('Invalid JSON.');
+            }
+
+            // Assurez-vous que l'ID de l'utilisateur est fourni
+            if (!isset($postdata['Id'])) {
+                return $utils->ErrorCustom('ID de l\'utilisateur manquant.');
+            }
+            $userId = $postdata['Id'];
+            $user = $userRepository->find($postdata['Id']);
+            if (!$user) {
+                throw new \Exception('User not found.');
+            }
+            $commandes = $commandeRepository->findBy(['leUser' => $user]);
+    
+            // Vérification si aucune commande n'a été trouvée
+            if (!$commandes) {
+                return $utils->ErrorCustom('Aucune commande trouvée.');
+            }
+    
+            // Spécifiez ici les champs à ignorer si nécessaire
+            $ignoredFields = ['leUser','lesCommander'];
+    
+            return $utils->GetJsonResponse($request, $commandes, $ignoredFields);
+        } catch (\Exception $e) {
+            return $utils->ErrorCustom('Erreur: ' . $e->getMessage());
+        }
+
+    }
+    #[Route('/api/mobile/GetAllCommander', name: 'app_api_mobile_GetAllCommander')]
+    public function GetAllCommander(Request $request,UserRepository $userRepository, CommandeRepository $commandeRepository , Utils $utils)
+    {
+        try {
+            $postdata = json_decode($request->getContent(), true);
+            if ($postdata === null) {
+                throw new \Exception('Invalid JSON.');
+            }
+
+            // Assurez-vous que l'ID de l'utilisateur est fourni
+            if (!isset($postdata['Id'])) {
+                return $utils->ErrorCustom('ID de l\'utilisateur manquant.');
+            }
+            $userId = $postdata['Id'];
+            $user = $userRepository->find($postdata['Id']);
+            if (!$user) {
+                throw new \Exception('User not found.');
+            }
+            $commandes = $commandeRepository->findBy(['leUser' => $user]);
     
             // Vérification si aucune commande n'a été trouvée
             if (!$commandes) {
@@ -316,6 +365,9 @@ class ApiController extends AbstractController
             $categorie = new Categorie();
             if (isset($postdata['nomCategorie'])) {
                 $categorie->setNomCategorie($postdata['nomCategorie']);
+            }
+            if (isset($postdata['urlImage'])) {
+                $categorie->setUrlImage($postdata['urlImage']);
             }
 
             $categorie->setLeUser($user);
@@ -468,6 +520,14 @@ public function creerCommander(Request $request, ProduitRepository $produitRepos
         if ($postdata === null) {
             throw new \Exception('Invalid JSON.');
         }
+        if (!isset($postdata['Id'])) {
+            throw new \Exception('User ID is missing.');
+        }
+        
+        $user = $userRepository->find($postdata['Id']);
+        if (!$user) {
+            throw new \Exception('User not found.');
+        }
 
         // Récupération et vérification de l'existence du Produit, de l'User et de la Commande
         $produit = $produitRepository->find($postdata['leProduit'] ?? null);
@@ -481,6 +541,9 @@ public function creerCommander(Request $request, ProduitRepository $produitRepos
         $commander->setLeProduit($produit);
         $commander->setLaCommande($commande);
         $commander->setQuantite($postdata['quantite'] ?? 0);
+        if (isset($postdata['Id'])) {
+            $commander->setLeUser($user);
+        }
 
         $entityManager->persist($commander);
         $entityManager->flush();
@@ -533,6 +596,64 @@ public function creerUtiliser(Request $request, RecompenseRepository $recompense
         return $utils->GetJsonResponse($request, $utiliser, $ignoredFields);
     } catch (\Exception $e) {
         return new Response(json_encode(['error' => $e->getMessage()]), Response::HTTP_BAD_REQUEST);
+    }
+}
+#[Route('/api/mobile/creerRecompense', name: 'api_creerRecompense', methods: ['POST'])]
+public function CreerRecompense(Request $request, UserRepository $userRepository, PalierRepository $palierRepository, ProduitRepository $produitRepository, EntityManagerInterface $entityManager, Utils $utils): Response
+{
+    try {
+        $postdata = json_decode($request->getContent(), true);
+        if ($postdata === null) {
+            throw new \Exception('Invalid JSON.');
+        }
+
+        // Validation de l'ID de l'utilisateur
+        if (!isset($postdata['Id'])) {
+            throw new \Exception('User ID is missing.');
+        }
+        $user = $userRepository->find($postdata['Id']);
+        if (!$user) {
+            throw new \Exception('User not found.');
+        }
+
+        $recompense = new Recompense();
+        if (isset($postdata['nomRecompense'])) {
+            $recompense->setNomRecompense($postdata['nomRecompense']);
+        }
+        if (isset($postdata['pointsNecessaires'])) {
+            $recompense->setPointsNecessaires($postdata['pointsNecessaires']);
+        }
+
+        // Association d'un palier si spécifié
+        if (isset($postdata['lePalier'])) {
+            $palier = $palierRepository->find($postdata['lePalier']);
+            if (!$palier) {
+                throw new \Exception('Palier not found.');
+            }
+            $recompense->setLePalier($palier);
+        }
+
+        // Association d'un produit si spécifié
+        if (isset($postdata['leProduit'])) {
+            $produit = $produitRepository->find($postdata['leProduit']);
+            if (!$produit) {
+                throw new \Exception('Produit not found.');
+            }
+            $recompense->setLeProduit($produit);
+        }
+
+        // Association de l'utilisateur à la récompense
+        $recompense->setLeUser($user);
+
+        $entityManager->persist($recompense);
+        $entityManager->flush();
+
+        // Ignorer les champs non nécessaires dans la réponse JSON
+        $ignoredFields = ['leUser', 'lesUtiliser','leProduit']; // Ajustez selon votre besoin.
+
+        return $utils->GetJsonResponse($request, $recompense, $ignoredFields);
+    } catch (\Exception $e) {
+        return $utils->ErrorCustom('Erreur lors de la création de la récompense: ' . $e->getMessage());
     }
 }
 }
