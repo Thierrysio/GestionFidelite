@@ -25,6 +25,9 @@ class Commande
     #[ORM\OneToMany(targetEntity: Commander::class, mappedBy: 'laCommande')]
     private Collection $lesCommander;
 
+    #[ORM\Column(length: 255)]
+    private ?string $etat = null;
+
     public function __construct()
     {
         $this->lesCommander = new ArrayCollection();
@@ -85,6 +88,18 @@ class Commande
                 $lesCommander->setLaCommande(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getEtat(): ?string
+    {
+        return $this->etat;
+    }
+
+    public function setEtat(string $etat): static
+    {
+        $this->etat = $etat;
 
         return $this;
     }
