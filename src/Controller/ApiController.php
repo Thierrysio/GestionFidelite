@@ -442,6 +442,9 @@ class ApiController extends AbstractController
             $commande = new Commande();
             $commande->setDateCommande(new \DateTime()); // Assumer la date de commande comme étant maintenant
             $commande->setLeUser($user);
+            if (isset($postdata['etat'])) {
+                $commande->setEtat($postdata['etat']);
+            }
     
             // Ici, ajoutez toute autre logique spécifique, comme la gestion des éléments de la commande
             
