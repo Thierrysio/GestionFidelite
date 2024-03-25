@@ -243,7 +243,7 @@ class ApiController extends AbstractController
             }
     
             // Spécifiez ici les champs à ignorer si nécessaire
-            $ignoredFields = ['leUser','lesCommander'];
+            $ignoredFields = ['leUser'];
     
             return $utils->GetJsonResponse($request, $commandes, $ignoredFields);
         } catch (\Exception $e) {
