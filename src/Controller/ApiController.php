@@ -144,7 +144,7 @@ class ApiController extends AbstractController
             $user->setPassword($passwordHash);
             $user->setTelephone($postdata['telephone'] ?? null);
             $user->setDateNaissance(new \DateTime($postdata['dateNaissance'] ?? 'now'));
-            $user->setStockPointsFidelite($postdata['StockPointsFidelite'] ?? 0);
+            $user->setStockPointsFidelite($postdata['stockPointsFidelite'] ?? 0);
             $user->setRoles(['ROLE_USER']);
 
             $entityManager->persist($user);
