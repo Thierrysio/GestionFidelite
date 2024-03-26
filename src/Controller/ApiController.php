@@ -691,4 +691,44 @@ public function CreerRecompense(Request $request, UserRepository $userRepository
             return $utils->ErrorCustom('Erreur: ' . $e->getMessage());
         }
     }
+    #[Route('/api/mobile/GetProduitsParCategorie', name: 'api_get_produits_par_categorie', methods: ['POST'])]
+public function GetProduitsParCategorie(Request $request, CategorieRepository $categorieRepository, ProduitRepository $produitRepository, Utils $utils): Response
+{
+    try {
+        // Décoder le JSON reçu dans le corps de la requête
+        $postdata = json_decode($request->getContent(), true);
+        if ($postdata === null) {
+            throw new \Exception('JSON invalide.');
+        }
+
+        // Vérifier si l'ID de la catégorie est fourni
+        if (!isset($postdata['Id'])) {
+            return $utils->ErrorCustom('ID de la catégorie manquant.');
+        }
+        $idCategorie = $postdata['Id'];
+
+        // Récupérer la catégorie à partir de son ID
+        $categorie = $categorieRepository->find($idCategorie);
+        if (!$categorie) {
+            return $utils->ErrorCustom('Catégorie non trouvée.');
+        }
+
+        // Récupérer tous les produits associés à cette catégorie
+        $produits = $produitRepository->findBy(['laCategorie' => $categorie]);
+
+        // Vérification si aucun produit n'a été trouvé
+        if (!$produits) {
+            return $utils->ErrorCustom('Aucun produit trouvé pour cette catégorie.');
+        }
+
+        // Spécifier ici les champs à ignorer si nécessaire
+        $ignoredFields = ['laCategorie','lesCommander','lesRecompenses','leUser','lesProduits'];
+
+        // Utiliser Utils pour générer une réponse JSON
+        return $utils->GetJsonResponse($request, $produits, $ignoredFields);
+    } catch (\Exception $e) {
+        return $utils->ErrorCustom('Erreur: ' . $e->getMessage());
+    }
+}
+
 }
