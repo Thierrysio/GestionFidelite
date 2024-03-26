@@ -92,7 +92,7 @@ class ApiController extends AbstractController
             }
 
             // Spécifiez ici les champs à ignorer si nécessaire
-            $ignoredFields = ['leUser','lesProduits'];
+            $ignoredFields = ['leUser','lesProduits','lesCommander'];
 
             return $utils->GetJsonResponse($request, $produits, $ignoredFields);
         } catch (\Exception $e) {
@@ -218,7 +218,7 @@ class ApiController extends AbstractController
 
     }
     #[Route('/api/mobile/GetAllCommander', name: 'app_api_mobile_GetAllCommander')]
-    public function GetAllCommander(Request $request,UserRepository $userRepository, CommandeRepository $commandeRepository , Utils $utils)
+    public function GetAllCommander(Request $request, CommanderRepository $commanderRepository,CommandeRepository $commandeRepository , Utils $utils)
     {
         try {
             $postdata = json_decode($request->getContent(), true);
@@ -230,22 +230,22 @@ class ApiController extends AbstractController
             if (!isset($postdata['Id'])) {
                 return $utils->ErrorCustom('ID de l\'utilisateur manquant.');
             }
-            $userId = $postdata['Id'];
-            $user = $userRepository->find($postdata['Id']);
-            if (!$user) {
-                throw new \Exception('User not found.');
+            
+            $Commande = $commandeRepository->find($postdata['Id']);
+            if (!$Commande) {
+                throw new \Exception('Commande not found.');
             }
-            $commandes = $commandeRepository->findBy(['leUser' => $user]);
+            $commander = $commanderRepository->findBy(['laCommande' => $Commande]);
     
             // Vérification si aucune commande n'a été trouvée
-            if (!$commandes) {
-                return $utils->ErrorCustom('Aucune commande trouvée.');
+            if (!$commander) {
+                return $utils->ErrorCustom('Aucune ligne de commande trouvée.');
             }
     
             // Spécifiez ici les champs à ignorer si nécessaire
-            $ignoredFields = ['leUser'];
+            $ignoredFields = ['leUser','lesCommander','lesProduits','lesRecompenses','laCommande'];
     
-            return $utils->GetJsonResponse($request, $commandes, $ignoredFields);
+            return $utils->GetJsonResponse($request, $commander, $ignoredFields);
         } catch (\Exception $e) {
             return $utils->ErrorCustom('Erreur: ' . $e->getMessage());
         }
