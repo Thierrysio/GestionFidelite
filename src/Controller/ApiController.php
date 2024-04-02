@@ -43,6 +43,29 @@ class ApiController extends AbstractController
             'controller_name' => 'ApiController',
         ]);
     }
+    #[Route('/api/mobile/GetFindUserByEmail', name: 'app_api_mobile_GetFindUserByEmail')]
+    public function GetFindUserByEmail(Request $request, UserRepository $userRepository, UserPasswordHasherInterface $passwordHasher)
+    {
+        $postdata = json_decode($request->getContent());
+        if (!isset($postdata->email)) {
+            return Utils::ErrorMissingArgumentsDebug($request->getContent());
+        }
+
+        $email = $postdata->email;
+        $plainPassword = $postdata->password;
+        $user = $userRepository->findOneByEmail($email); // Assurez-vous que cette méthode existe dans votre UserRepository
+
+        if (!$user || !$passwordHasher->isPasswordValid($user, $plainPassword)) {
+            // Si aucun utilisateur n'est trouvé OU si le mot de passe n'est pas valide
+            return Utils::ErrorCustom('Email ou mot de passe invalide.');
+        }
+
+        // Si l'utilisateur est trouvé et le mot de passe est valide, renvoyez les informations de l'utilisateur
+        $response = new Utils;
+        $ignoredFields = ['userIdentifier','password', 'roles','lesCommandes','lesCommander','lesUtiliser','lesProduits']; // Exemple: ignorez les champs sensibles comme le mot de passe et les rôles
+
+        return $response->GetJsonResponse($request, $user, $ignoredFields); // Excluez le champ du mot de passe hashé dans la réponse
+    }
 
     #[Route('/api/mobile/GetFindUser', name: 'app_api_mobile_getuser')]
     public function GetFindUser(Request $request, UserRepository $userRepository, UserPasswordHasherInterface $passwordHasher)
