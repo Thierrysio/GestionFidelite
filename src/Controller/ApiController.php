@@ -52,13 +52,10 @@ class ApiController extends AbstractController
         }
 
         $email = $postdata->email;
-        $plainPassword = $postdata->password;
+        
         $user = $userRepository->findOneByEmail($email); // Assurez-vous que cette méthode existe dans votre UserRepository
 
-        if (!$user || !$passwordHasher->isPasswordValid($user, $plainPassword)) {
-            // Si aucun utilisateur n'est trouvé OU si le mot de passe n'est pas valide
-            return Utils::ErrorCustom('Email ou mot de passe invalide.');
-        }
+        
 
         // Si l'utilisateur est trouvé et le mot de passe est valide, renvoyez les informations de l'utilisateur
         $response = new Utils;
