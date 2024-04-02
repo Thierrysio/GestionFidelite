@@ -293,10 +293,10 @@ class ApiController extends AbstractController
             }
     
             // Récupération du User à partir de l'ID fourni
-            if (!isset($postdata['Id'])) {
+            if (!isset($postdata['UserID'])) {
                 throw new \Exception('User ID is missing.');
             }
-            $user = $userRepository->find($postdata['Id']);
+            $user = $userRepository->find($postdata['UserID']);
             if (!$user) {
                 throw new \Exception('User not found.');
             }
@@ -353,10 +353,10 @@ class ApiController extends AbstractController
                 throw new \Exception('Invalid JSON.');
             }
              // Récupération du User à partir de l'ID fourni
-             if (!isset($postdata['Id'])) {
+             if (!isset($postdata['UserID'])) {
                 throw new \Exception('User ID is missing.');
             }
-            $user = $userRepository->find($postdata['Id']);
+            $user = $userRepository->find($postdata['UserID']);
             if (!$user) {
                 throw new \Exception('User not found.');
             }
@@ -419,11 +419,11 @@ class ApiController extends AbstractController
                 throw new \Exception('Invalid JSON.');
             }
     
-            if (!isset($postdata['id'])) {
+            if (!isset($postdata['Id'])) {
                 throw new \Exception('User ID is missing.');
             }
     
-            $user = $userRepository->find($postdata['id']);
+            $user = $userRepository->find($postdata['Id']);
             if (!$user) {
                 throw new \Exception('User not found.');
             }
@@ -482,11 +482,11 @@ class ApiController extends AbstractController
                 throw new \Exception('Invalid JSON.');
             }
     
-            if (!isset($postdata['Id'])) {
+            if (!isset($postdata['UserID'])) {
                 throw new \Exception('User ID is missing.');
             }
             
-            $user = $userRepository->find($postdata['Id']);
+            $user = $userRepository->find($postdata['UserID']);
             if (!$user) {
                 throw new \Exception('User not found.');
             }
@@ -520,11 +520,11 @@ public function creerCommander(Request $request, ProduitRepository $produitRepos
         if ($postdata === null) {
             throw new \Exception('Invalid JSON.');
         }
-        if (!isset($postdata['Id'])) {
+        if (!isset($postdata['UserID'])) {
             throw new \Exception('User ID is missing.');
         }
         
-        $user = $userRepository->find($postdata['Id']);
+        $user = $userRepository->find($postdata['UserID']);
         if (!$user) {
             throw new \Exception('User not found.');
         }
@@ -608,10 +608,10 @@ public function CreerRecompense(Request $request, UserRepository $userRepository
         }
 
         // Validation de l'ID de l'utilisateur
-        if (!isset($postdata['Id'])) {
+        if (!isset($postdata['UserID'])) {
             throw new \Exception('User ID is missing.');
         }
-        $user = $userRepository->find($postdata['Id']);
+        $user = $userRepository->find($postdata['UserID']);
         if (!$user) {
             throw new \Exception('User not found.');
         }
@@ -730,5 +730,4 @@ public function GetProduitsParCategorie(Request $request, CategorieRepository $c
         return $utils->ErrorCustom('Erreur: ' . $e->getMessage());
     }
 }
-
 }
