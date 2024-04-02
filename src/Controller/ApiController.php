@@ -226,9 +226,9 @@ class ApiController extends AbstractController
                 throw new \Exception('Invalid JSON.');
             }
 
-            // Assurez-vous que l'ID de l'utilisateur est fourni
+            // Assurez-vous que l'ID de la commande est fourni
             if (!isset($postdata['Id'])) {
-                return $utils->ErrorCustom('ID de l\'utilisateur manquant.');
+                return $utils->ErrorCustom('ID de la commande manquante.');
             }
             
             $Commande = $commandeRepository->find($postdata['Id']);
@@ -730,4 +730,42 @@ public function GetProduitsParCategorie(Request $request, CategorieRepository $c
         return $utils->ErrorCustom('Erreur: ' . $e->getMessage());
     }
 }
+#[Route('/api/mobile/updateCommande', name: 'api_update_commande', methods: ['POST'])]
+public function updateCommande(Request $request, CommandeRepository $commandeRepository, EntityManagerInterface $entityManager, Utils $utils): Response
+{
+    try {
+        $postdata = json_decode($request->getContent(), true);
+        if ($postdata === null) {
+            throw new \Exception('Invalid JSON.');
+        }
+
+        if (!isset($postdata['Id'])) {
+            throw new \Exception('Commande ID is missing.');
+        }
+        
+        $commande = $commandeRepository->find($postdata['Id']);
+        if (!$commande) {
+            throw new \Exception('Commande not found.');
+        }
+
+        // Mise à jour des attributs de la commande, exemple avec 'etat'
+        if (isset($postdata['etat'])) {
+            $commande->setEtat($postdata['etat']);
+        }
+        
+        // Ajoutez ici toute autre logique spécifique de mise à jour, par exemple, la modification des éléments de la commande
+
+        $entityManager->persist($commande);
+        $entityManager->flush();
+
+        // Utilisation de $utils->GetJsonResponse pour retourner la commande mise à jour
+        // Spécifiez ici les champs à ignorer si nécessaire
+        $ignoredFields = ['leUser', 'lesCommander']; // Ajustez selon votre besoin
+        
+        return $utils->GetJsonResponse($request, $commande, $ignoredFields);
+    } catch (\Exception $e) {
+        return new Response(json_encode(['error' => $e->getMessage()]), Response::HTTP_BAD_REQUEST);
+    }
+}
+
 }
