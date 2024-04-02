@@ -59,7 +59,7 @@ class ApiController extends AbstractController
 
         // Si l'utilisateur est trouvé et le mot de passe est valide, renvoyez les informations de l'utilisateur
         $response = new Utils;
-        $ignoredFields = ['userIdentifier','password', 'roles','lesCommandes','lesCommander','lesUtiliser','lesProduits']; // Exemple: ignorez les champs sensibles comme le mot de passe et les rôles
+        $ignoredFields = ['userIdentifier','password', 'roles','lesCommandes','lesCommander','lesUtiliser','lesProduits','lesCategories','lesRecompenses']; // Exemple: ignorez les champs sensibles comme le mot de passe et les rôles
 
         return $response->GetJsonResponse($request, $user, $ignoredFields); // Excluez le champ du mot de passe hashé dans la réponse
     }
@@ -83,7 +83,7 @@ class ApiController extends AbstractController
 
         // Si l'utilisateur est trouvé et le mot de passe est valide, renvoyez les informations de l'utilisateur
         $response = new Utils;
-        $ignoredFields = ['userIdentifier','password', 'roles','lesCommandes','lesCommander','lesUtiliser','lesProduits']; // Exemple: ignorez les champs sensibles comme le mot de passe et les rôles
+        $ignoredFields = ['userIdentifier','password', 'roles','lesCommandes','lesCommander','lesUtiliser','lesProduits','lesCategories','lesRecompenses']; // Exemple: ignorez les champs sensibles comme le mot de passe et les rôles
 
         return $response->GetJsonResponse($request, $user, $ignoredFields); // Excluez le champ du mot de passe hashé dans la réponse
     }
