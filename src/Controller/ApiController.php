@@ -182,11 +182,7 @@ class ApiController extends AbstractController
     public function GetAllBlasons(Request $request, BlasonRepository $blasonRepository , Utils $utils)
     {
         try {
-            $postdata = json_decode($request->getContent(), true);
-            if ($postdata === null) {
-                throw new \Exception('Invalid JSON.');
-            }
-
+           
             // Récupère tous les produits associés à l'utilisateur spécifique
             $blasons = $blasonRepository->findAll();
     
