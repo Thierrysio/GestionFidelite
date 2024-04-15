@@ -21,6 +21,15 @@ class UtiliserRepository extends ServiceEntityRepository
         parent::__construct($registry, Utiliser::class);
     }
 
+    public function getUtilisationsByUser(int $userId): array
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.leUser = :userId')
+            ->setParameter('userId', $userId)
+            ->getQuery()
+            ->getResult();
+    }
+
     //    /**
     //     * @return Utiliser[] Returns an array of Utiliser objects
     //     */

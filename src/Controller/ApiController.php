@@ -88,6 +88,35 @@ class ApiController extends AbstractController
         return $response->GetJsonResponse($request, $user, $ignoredFields); // Excluez le champ du mot de passe hashé dans la réponse
     }
 
+    #[Route('/api/mobile/getLesUtilisers', name: 'app_api_user_utiliser')]
+public function getUtiliser(Request $request, UtiliserRepository $utiliserRepository, Utils $utils): Response
+{
+    $postdata = json_decode($request->getContent(), true);
+    if ($postdata === null) {
+        throw new \Exception('Invalid JSON.');
+    }
+
+    // Assurez-vous que l'ID de l'utilisateur est fourni
+    if (!isset($postdata['Id'])) {
+        return $utils->ErrorCustom('ID de l\'utilisateur manquant.');
+    }
+    $userId = $postdata['Id'];
+
+    try {
+        $utilisations = $utiliserRepository->getUtilisationsByUser($userId);
+
+        if (empty($utilisations)) {
+            return $utils->ErrorCustom('Aucune utilisation trouvée pour cet utilisateur.');
+        }
+// Spécifiez ici les champs à ignorer si nécessaire
+$ignoredFields = ['leUser','lesProduits','lesCommander','lesUtiliser'];
+        return $utils->GetJsonResponse($request, $utilisations, $ignoredFields);
+    } catch (\Exception $e) {
+        return $utils->ErrorCustom('Erreur: ' . $e->getMessage());
+    }
+}
+
+
     #[Route('/api/mobile/GetAllProduits', name: 'app_api_mobile_GetAllProduits')]
     public function GetAllProduits(Request $request, ProduitRepository $produitRepository, Utils $utils): Response
     {
